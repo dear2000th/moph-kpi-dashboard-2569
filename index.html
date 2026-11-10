@@ -1,0 +1,1651 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard ติดตามแผนงาน/โครงการ และตัวชี้วัด กระทรวงสาธารณสุข พ.ศ. 2569</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Sarabun & Prompt -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            prompt: ['Prompt', 'sans-serif'],
+            sarabun: ['Sarabun', 'sans-serif'],
+          },
+          colors: {
+            moph: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              800: '#065f46',
+              900: '#064e3b'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Sarabun', sans-serif;
+      background-color: #f8fafc;
+      color: #1e293b;
+    }
+    h1, h2, h3, h4, .font-heading {
+      font-family: 'Prompt', sans-serif;
+    }
+    .status-badge-pass {
+      background-color: #ecfdf5;
+      color: #047857;
+      border: 1px solid #a7f3d0;
+    }
+    .status-badge-fail {
+      background-color: #fef2f2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+    }
+    .status-badge-pending {
+      background-color: #fffbeb;
+      color: #b45309;
+      border: 1px solid #fde68a;
+    }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-50">
+
+  <!-- Top Navigation Header -->
+  <header class="bg-gradient-to-r from-emerald-800 via-teal-800 to-emerald-900 text-white shadow-lg sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+      <div class="flex items-center space-x-3.5">
+        <div class="w-11 h-11 rounded-xl bg-white/10 backdrop-blur border border-white/20 flex items-center justify-center text-emerald-300 shadow-inner">
+          <i class="fa-solid fa-hospital-user text-2xl"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 text-xs font-semibold bg-emerald-400/20 text-emerald-200 border border-emerald-400/30 rounded-md">MOPH Dashboard</span>
+            <span class="text-xs text-emerald-200/80">ปีงบประมาณ พ.ศ. 2569</span>
+          </div>
+          <h1 class="text-base sm:text-lg font-bold text-white tracking-tight leading-tight">
+            ติดตามแผนงาน/โครงการ และตัวชี้วัด กระทรวงสาธารณสุข
+          </h1>
+        </div>
+      </div>
+
+      <!-- Quick Meta / Export -->
+      <div class="flex items-center gap-3">
+        <div class="text-xs text-right hidden sm:block text-emerald-100/90">
+          <p><i class="fa-regular fa-calendar-check mr-1"></i> ข้อมูลอัปเดต: 11 ต.ค. 2569</p>
+          <p class="text-emerald-300 font-mono">12 แผนงาน 27 โครงการ 36 ตัวชี้วัด</p>
+        </div>
+        <button onclick="window.print()" class="px-3 py-1.5 bg-emerald-700/60 hover:bg-emerald-600 border border-emerald-500/40 text-white rounded-lg text-xs font-medium transition flex items-center gap-1.5 shadow-sm">
+          <i class="fa-solid fa-print"></i> พิมพ์รายงาน
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- KPI Summary Cards (Executive Overview) -->
+    <section class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5">
+      <!-- Total -->
+      <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80 flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-medium text-slate-500">ตัวชี้วัดทั้งหมด</span>
+          <span class="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center text-sm">
+            <i class="fa-solid fa-layer-group"></i>
+          </span>
+        </div>
+        <div class="mt-2 flex items-baseline gap-2">
+          <span id="kpi-total" class="text-2xl sm:text-3xl font-bold font-heading text-slate-800">36</span>
+          <span class="text-xs text-slate-500 font-normal">ตัวชี้วัด</span>
+        </div>
+        <div class="mt-2 text-[11px] text-slate-400">ครอบคลุม 5 เสาหลักยุทธศาสตร์</div>
+      </div>
+
+      <!-- Pass -->
+      <div class="bg-white rounded-2xl p-4 shadow-sm border border-emerald-200/70 relative overflow-hidden flex flex-col justify-between">
+        <div class="absolute -right-4 -bottom-4 w-16 h-16 bg-emerald-50 rounded-full -z-0"></div>
+        <div class="flex items-center justify-between relative z-10">
+          <span class="text-xs font-medium text-emerald-700">บรรลุเป้าหมาย (ผ่าน)</span>
+          <span class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm">
+            <i class="fa-solid fa-circle-check"></i>
+          </span>
+        </div>
+        <div class="mt-2 flex items-baseline gap-2 relative z-10">
+          <span id="kpi-pass" class="text-2xl sm:text-3xl font-bold font-heading text-emerald-600">0</span>
+          <span id="kpi-pass-pct" class="text-xs font-semibold text-emerald-700 font-mono">(0%)</span>
+        </div>
+        <div class="mt-2 text-[11px] text-emerald-600/80 relative z-10 font-medium">ผลการดำเนินงานเป็นไปตามเกณฑ์</div>
+      </div>
+
+      <!-- Fail -->
+      <div class="bg-white rounded-2xl p-4 shadow-sm border border-rose-200/70 relative overflow-hidden flex flex-col justify-between">
+        <div class="absolute -right-4 -bottom-4 w-16 h-16 bg-rose-50 rounded-full -z-0"></div>
+        <div class="flex items-center justify-between relative z-10">
+          <span class="text-xs font-medium text-rose-700">ไม่บรรลุเป้าหมาย</span>
+          <span class="w-8 h-8 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center text-sm">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+          </span>
+        </div>
+        <div class="mt-2 flex items-baseline gap-2 relative z-10">
+          <span id="kpi-fail" class="text-2xl sm:text-3xl font-bold font-heading text-rose-600">0</span>
+          <span id="kpi-fail-pct" class="text-xs font-semibold text-rose-700 font-mono">(0%)</span>
+        </div>
+        <div class="mt-2 text-[11px] text-rose-600/80 relative z-10 font-medium">ต้องเร่งรัดและติดตามใกล้ชิด</div>
+      </div>
+
+      <!-- Pending / Evaluating -->
+      <div class="bg-white rounded-2xl p-4 shadow-sm border border-amber-200/70 relative overflow-hidden flex flex-col justify-between">
+        <div class="absolute -right-4 -bottom-4 w-16 h-16 bg-amber-50 rounded-full -z-0"></div>
+        <div class="flex items-center justify-between relative z-10">
+          <span class="text-xs font-medium text-amber-700">รอประเมิน / เฝ้าระวัง</span>
+          <span class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center text-sm">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+          </span>
+        </div>
+        <div class="mt-2 flex items-baseline gap-2 relative z-10">
+          <span id="kpi-pending" class="text-2xl sm:text-3xl font-bold font-heading text-amber-600">0</span>
+          <span id="kpi-pending-pct" class="text-xs font-semibold text-amber-700 font-mono">(0%)</span>
+        </div>
+        <div class="mt-2 text-[11px] text-amber-700/80 relative z-10">อยู่ระหว่างรวบรวมข้อมูล</div>
+      </div>
+
+      <!-- Total Health Score -->
+      <div class="bg-gradient-to-br from-slate-900 to-teal-950 text-white rounded-2xl p-4 shadow-sm col-span-2 sm:col-span-1 lg:col-span-1 flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-medium text-slate-300">อัตราความสำเร็จรอบ 12 ด.</span>
+          <span class="w-8 h-8 rounded-lg bg-white/10 text-emerald-400 flex items-center justify-center text-sm">
+            <i class="fa-solid fa-chart-pie"></i>
+          </span>
+        </div>
+        <div class="mt-2 flex items-baseline gap-1">
+          <span id="kpi-score" class="text-2xl sm:text-3xl font-bold font-heading text-emerald-400">0%</span>
+          <span class="text-[11px] text-slate-400">จากตัวชี้วัดที่ประเมิน</span>
+        </div>
+        <div class="mt-2">
+          <div class="w-full bg-slate-700 rounded-full h-1.5 overflow-hidden">
+            <div id="kpi-score-bar" class="bg-emerald-400 h-1.5 rounded-full" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Visual Charts & Pillar Analytics Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- Chart 1: Pillar Breakdown -->
+      <div class="lg:col-span-2 bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 gap-2">
+          <div>
+            <h3 class="font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2">
+              <i class="fa-solid fa-chart-bar text-teal-600"></i> สรุปผลสัมฤทธิ์แยกตาม 5 เสาหลัก Excellence
+            </h3>
+            <p class="text-xs text-slate-500">เปรียบเทียบสัดส่วนตัวชี้วัด ผ่าน / ไม่ผ่าน / รอผล</p>
+          </div>
+          <span class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-mono">รอบสะสม 12 เดือน</span>
+        </div>
+        <div class="h-64 sm:h-72 mt-4 relative">
+          <canvas id="pillarBarChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Chart 2: Status Proportion Doughnut -->
+      <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col">
+        <div class="pb-3 border-b border-slate-100">
+          <h3 class="font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2">
+            <i class="fa-solid fa-chart-pie text-emerald-600"></i> สัดส่วนสถานะรวม 36 ตัวชี้วัด
+          </h3>
+          <p class="text-xs text-slate-500">สัดส่วนตามผลลัพธ์รอบล่าสุด</p>
+        </div>
+        <div class="h-56 relative my-auto flex items-center justify-center">
+          <canvas id="statusDoughnutChart"></canvas>
+        </div>
+        <div class="pt-3 border-t border-slate-100 grid grid-cols-3 text-center text-xs">
+          <div class="border-r border-slate-100">
+            <span class="block text-emerald-600 font-bold" id="legend-pass">0</span>
+            <span class="text-slate-400 text-[11px]">ผ่านเกณฑ์</span>
+          </div>
+          <div class="border-r border-slate-100">
+            <span class="block text-rose-600 font-bold" id="legend-fail">0</span>
+            <span class="text-slate-400 text-[11px]">ไม่ผ่านเกณฑ์</span>
+          </div>
+          <div>
+            <span class="block text-amber-600 font-bold" id="legend-pending">0</span>
+            <span class="text-slate-400 text-[11px]">รอผล/เฝ้าระวัง</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter & Controls Toolbar -->
+    <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-4">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        
+        <!-- Search bar -->
+        <div class="relative flex-1">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+          <input 
+            type="text" 
+            id="searchInput" 
+            placeholder="ค้นหาชื่อตัวชี้วัด, ลำดับ, หรือคำสำคัญ เช่น มารดา, มะเร็ง, สารเสพติด, RLU..." 
+            class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition"
+          >
+        </div>
+
+        <!-- Pillar Filter Dropdown -->
+        <div class="flex flex-wrap sm:flex-nowrap items-center gap-2">
+          <label class="text-xs font-semibold text-slate-500 whitespace-nowrap">เสาหลัก:</label>
+          <select id="pillarFilter" class="w-full sm:w-auto bg-slate-50 border border-slate-200 text-slate-700 text-xs sm:text-sm rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            <option value="ALL">ทุกเสาหลัก (All Excellence)</option>
+            <option value="PP&P">PP & P Excellence</option>
+            <option value="Service">Service Excellence</option>
+            <option value="People">People Excellence</option>
+            <option value="Governance">Governance Excellence</option>
+            <option value="Health-Related Economy">Health-Related Economy</option>
+          </select>
+        </div>
+
+        <!-- Status Filter Buttons -->
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+          <button class="status-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-700 text-white transition shadow-sm" data-status="ALL">ทั้งหมด</button>
+          <button class="status-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition" data-status="PASS">ผ่าน</button>
+          <button class="status-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition" data-status="FAIL">ไม่ผ่าน</button>
+          <button class="status-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition" data-status="PENDING">รอผล/เฝ้าระวัง</button>
+        </div>
+      </div>
+
+      <!-- Quick Category Pills -->
+      <div class="flex items-center gap-2 overflow-x-auto text-xs pt-1 border-t border-slate-100">
+        <span class="text-slate-400 text-[11px] whitespace-nowrap font-medium"><i class="fa-solid fa-bolt text-amber-500 mr-1"></i>ตัวช่วยเน้นดู:</span>
+        <button onclick="quickFilterHighlight('fail')" class="px-2.5 py-1 rounded-md bg-rose-50 text-rose-700 border border-rose-200/60 hover:bg-rose-100 transition whitespace-nowrap">
+          <i class="fa-solid fa-circle-exclamation mr-1"></i>ดูรายการที่ยังไม่ผ่านเป้าหมาย
+        </button>
+        <button onclick="quickFilterHighlight('cancer')" class="px-2.5 py-1 rounded-md bg-purple-50 text-purple-700 border border-purple-200/60 hover:bg-purple-100 transition whitespace-nowrap">
+          <i class="fa-solid fa-ribbon mr-1"></i>บริการมะเร็งครบวงจร (22.1 - 22.3)
+        </button>
+        <button onclick="quickFilterHighlight('rlu')" class="px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 border border-blue-200/60 hover:bg-blue-100 transition whitespace-nowrap">
+          <i class="fa-solid fa-flask mr-1"></i>การตรวจ RLU Lab (ข้อ 30)
+        </button>
+        <button onclick="quickFilterHighlight('all')" class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200 transition whitespace-nowrap ml-auto">
+          รีเซ็ตการค้นหา
+        </button>
+      </div>
+    </div>
+
+    <!-- Indicators Data Table Card -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      
+      <!-- Table Top Bar -->
+      <div class="p-4 sm:p-5 border-b border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-teal-100 text-teal-800 flex items-center justify-center font-bold text-xs">
+            KPI
+          </div>
+          <div>
+            <h2 class="text-sm sm:text-base font-bold text-slate-800 font-heading">
+              รายละเอียดผลงานตามตัวชี้วัด (รอบ 3, 6, 9, 12 เดือน)
+            </h2>
+            <p class="text-xs text-slate-500">แสดงผลเปรียบเทียบผลการดำเนินงานจริงเทียบเป้าหมายประจำปีงบประมาณ</p>
+          </div>
+        </div>
+        
+        <div class="flex items-center gap-2 text-xs">
+          <span class="text-slate-500">พบ <span id="record-count" class="font-bold text-slate-800">0</span> รายการ</span>
+          <span class="text-slate-300">|</span>
+          <span class="flex items-center gap-1.5 text-slate-500">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> ผ่าน
+            <span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block ml-1"></span> ไม่ผ่าน
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block ml-1"></span> รอผล
+          </span>
+        </div>
+      </div>
+
+      <!-- Table Content Container (Responsive) -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs sm:text-sm">
+          <thead>
+            <tr class="bg-slate-100/80 text-slate-600 border-b border-slate-200 font-semibold uppercase tracking-wider text-[11px] sm:text-xs">
+              <th class="py-3 px-3 sm:px-4 text-center w-12">ที่</th>
+              <th class="py-3 px-3 sm:px-4 min-w-[220px]">ตัวชี้วัด / แผนงาน</th>
+              <th class="py-3 px-3 sm:px-4 text-center w-28">เป้าหมาย 69</th>
+              <th class="py-3 px-3 text-center hidden md:table-cell w-20">ผล 3 ด.</th>
+              <th class="py-3 px-3 text-center hidden md:table-cell w-20">ผล 6 ด.</th>
+              <th class="py-3 px-3 text-center hidden sm:table-cell w-20">ผล 9 ด.</th>
+              <th class="py-3 px-3 sm:px-4 text-center w-28 bg-emerald-50/60 font-bold text-emerald-900 border-x border-emerald-100">
+                ผล 12 เดือน
+              </th>
+              <th class="py-3 px-3 sm:px-4 text-center w-28">สถานะ</th>
+              <th class="py-3 px-2 sm:px-3 text-center w-16">แนวโน้ม</th>
+            </tr>
+          </thead>
+          <tbody id="indicatorsTableBody" class="divide-y divide-slate-100">
+            <!-- Dynamic rows will be inserted here -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty State -->
+      <div id="noResults" class="hidden py-12 text-center text-slate-400">
+        <i class="fa-regular fa-folder-open text-4xl mb-2 text-slate-300"></i>
+        <p class="text-sm">ไม่พบตัวชี้วัดที่ตรงตามเงื่อนไขการค้นหา</p>
+      </div>
+
+    </div>
+
+    <!-- Plan Summary Accordion Breakdown -->
+    <section class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
+      <div class="mb-4">
+        <h3 class="text-base font-bold text-slate-800 font-heading flex items-center gap-2">
+          <i class="fa-solid fa-list-check text-emerald-600"></i> สรุปผลสัมฤทธิ์ตาม 12 แผนงานยุทธศาสตร์
+        </h3>
+        <p class="text-xs text-slate-500">คลิกเพื่อดูสรุปสัดส่วนการผ่านเป้าหมายแยกแต่ละแผนงาน</p>
+      </div>
+      <div id="planOverviewGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Indicator Trend Modal -->
+  <div id="trendModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-slate-100 animate-in fade-in zoom-in duration-200">
+      <div class="flex items-start justify-between border-b border-slate-100 pb-3">
+        <div>
+          <span id="modalCategory" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800"></span>
+          <h3 id="modalTitle" class="text-base font-bold text-slate-800 mt-1 font-heading leading-tight"></h3>
+        </div>
+        <button onclick="closeTrendModal()" class="text-slate-400 hover:text-slate-600 p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div class="mt-4">
+        <div class="flex items-center justify-between text-xs mb-2">
+          <span class="text-slate-500">เป้าหมายประจำปี: <strong id="modalTarget" class="text-slate-800"></strong></span>
+          <span class="text-slate-500">ผลล่าสุด (12 ด.): <strong id="modalLatest" class="text-slate-800"></strong></span>
+        </div>
+        
+        <div class="h-56 relative w-full bg-slate-50 rounded-xl p-2 border border-slate-100">
+          <canvas id="modalChart"></canvas>
+        </div>
+      </div>
+
+      <div class="mt-4 p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600 space-y-1">
+        <div class="flex justify-between">
+          <span>รอบ 3 เดือน:</span>
+          <span id="mVal3" class="font-mono font-semibold">-</span>
+        </div>
+        <div class="flex justify-between">
+          <span>รอบ 6 เดือน:</span>
+          <span id="mVal6" class="font-mono font-semibold">-</span>
+        </div>
+        <div class="flex justify-between">
+          <span>รอบ 9 เดือน:</span>
+          <span id="mVal9" class="font-mono font-semibold">-</span>
+        </div>
+        <div class="flex justify-between font-bold text-slate-800 pt-1 border-t border-slate-200">
+          <span>รอบ 12 เดือน (สิ้นสุด):</span>
+          <span id="mVal12" class="font-mono text-emerald-700">-</span>
+        </div>
+      </div>
+
+      <div class="mt-5 text-right">
+        <button onclick="closeTrendModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-medium">
+          ปิดหน้าต่าง
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-slate-200 py-4 mt-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-xs text-slate-500">
+      <p>ระบบติดตามผลการดำเนินงานตามแผนงาน/โครงการ และตัวชี้วัด กระทรวงสาธารณสุข ประจำปีงบประมาณ พ.ศ. 2569</p>
+      <p class="text-slate-400 mt-0.5">พัฒนาระบบแดชบอร์ดจำลองฐานข้อมูลตัวชี้วัดกระทรวงสาธารณสุข</p>
+    </div>
+  </footer>
+
+  <!-- Dashboard JavaScript Logic -->
+  <script>
+    // Comprehensive parsed dataset from images
+    const kpiData = [
+      // แผนงานที่ 1: การพัฒนาคุณภาพชีวิตคนไทยทุกกลุ่มวัย (ด้านสุขภาพ)
+      {
+        id: "1",
+        num: "1",
+        pillar: "PP&P",
+        plan: "แผนงานที่ 1: พัฒนาคุณภาพชีวิตคนไทยทุกกลุ่มวัย",
+        name: "อัตราส่วนการตายมารดาไทยต่อการเกิดมีชีพแสนคน",
+        target: "<= 15 ต่อแสน",
+        targetVal: 15,
+        criteria: "lte",
+        r3: 38.60,
+        r6: 38.60,
+        r9: 13.59,
+        r12: 9.97,
+        status: "PASS",
+        note: "บรรลุเป้าหมายที่ตั้งไว้ไม่เกิน 15"
+      },
+      {
+        id: "2.1",
+        num: "2.1",
+        pillar: "PP&P",
+        plan: "แผนงานที่ 1: พัฒนาคุณภาพชีวิตคนไทยทุกกลุ่มวัย",
+        name: "ร้อยละของเด็ก อายุ 0 - 5 ปี มีพัฒนาการสมวัย",
+        target: ">= 88%",
+        targetVal: 88,
+        criteria: "gte",
+        r3: 87.04,
+        r6: 87.41,
+        r9: 86.97,
+        r12: 83.58,
+        status: "FAIL",
+        note: "ผล 12 เดือน 83.58% ต่ำกว่าเป้าหมาย 88%"
+      },
+      {
+        id: "2.2",
+        num: "2.2",
+        pillar: "PP&P",
+        plan: "แผนงานที่ 1: พัฒนาคุณภาพชีวิตคนไทยทุกกลุ่มวัย",
+        name: "ร้อยละของเด็ก อายุ 0 - 5 ปี ฟันดีไม่มีผุ (Cavity Free)",
+        target: ">= 80%",
+        targetVal: 80,
+        criteria: "gte",
+        r3: null,
+        r6: null,
+        r9: null,
+        r12: 72.95,
+        status: "FAIL",
+        note: "ผลลัพธ์รอบ 12 เดือนอยู่ที่ 72.95% (เป้าหมาย >= 80%)"
+      },
+      {
+        id: "3",
+        num: "3",
+        pillar: "PP&P",
+        plan: "แผนงานที่ 1: พัฒนาคุณภาพชีวิตคนไทยทุกกลุ่มวัย",
+        name: "ร้อยละของชุมชนมีการดำเนินการจัดการสุขภาพที่เหมาะสมกับประชาชน",
+        target: ">= 90%",
+        targetVal: 90,
+        criteria: "gte",
+        r3: null,
+        r6: 99.07,
+        r9: 107.41,
+        r12: 107.41,
+        status: "PASS",
+        note: "ผลงานทะลุเป้าหมาย 107.41%"
+      },
+      {
+        id: "4",
+        num: "4",
+        pillar: "PP&P",
+        plan: "แผนงานที่ 1: พัฒนาคุณภาพชีวิตคนไทยทุกกลุ่มวัย",
+        name: "อัตราความรอบรู้ด้านสุขภาพของประชาชนไทย อายุ 15 ปีขึ้นไป",
+        target: ">= 83%",
+        targetVal: 83,
+        criteria: "gte",
+        r3: null,
+        r6: null,
+        r9: 92.53,
+        r12: 92.52,
+        status: "PASS",
+        note: "ผลงาน 92.52% บรรลุตามเกณฑ์"
+      },
+      {
+        id: "5",
+        num: "5",
+        pillar: "PP&P",
+        plan: "แผนงานที่ 1: พัฒนาคุณภาพชีวิตคนไทยทุกกลุ่มวัย",
+        name: "ระดับความรอบรู้สุขภาพเรื่องโรคอุบัติใหม่/อุบัติซ้ำ",
+        target: ">= 30%",
+        targetVal: 30,
+        criteria: "gte",
+        r3: null,
+        r6: null,
+        r9: null,
+        r12: "NO R12",
+        status: "PENDING",
+        note: "ไม่มีข้อมูลรอบ 12 เดือน (NO R12)"
+      },
+
+      // แผนงานที่ 2: การป้องกันควบคุมโรคและลดปัจจัยเสี่ยงด้านสุขภาพ
+      {
+        id: "6.1",
+        num: "6.1",
+        pillar: "PP&P",
+        plan: "แผนงานที่ 2: ป้องกันควบคุมโรคและลดปัจจัยเสี่ยง",
+        name: "ร้อยละการตรวจติดตามยืนยันวินิจฉัยกลุ่มสงสัยป่วยโรคเบาหวาน",
+        target: ">= 70%",
+        targetVal: 70,
+        criteria: "gte",
+        r3: 89.42,
+        r6: 88.21,
+        r9: 87.75,
+        r12: 86.84,
+        status: "PASS",
+        note: "สูงกว่าเป้าหมาย 70%"
+      },
+      {
+        id: "6.2",
+        num: "6.2",
+        pillar: "PP&P",
+        plan: "แผนงานที่ 2: ป้องกันควบคุมโรคและลดปัจจัยเสี่ยง",
+        name: "ร้อยละการตรวจติดตามยืนยันวินิจฉัยกลุ่มสงสัยป่วยโรคความดันโลหิตสูง",
+        target: ">= 80%",
+        targetVal: 80,
+        criteria: "gte",
+        r3: 93.51,
+        r6: 92.80,
+        r9: 92.27,
+        r12: 91.94,
+        status: "PASS",
+        note: "สูงกว่าเป้าหมาย 80%"
+      },
+      {
+        id: "7",
+        num: "7",
+        pillar: "PP&P",
+        plan: "แผนงานที่ 2: ป้องกันควบคุมโรคและลดปัจจัยเสี่ยง",
+        name: "อัตราการเสียชีวิตและบาดเจ็บจากอุบัติเหตุทางถนนช่วงวัย 1-18 ปี ลดลง",
+        target: "<= -3.00%",
+        targetVal: -3.00,
+        criteria: "lte",
+        r3: -9.49,
+        r6: -7.64,
+        r9: -13.34,
+        r12: -10.47,
+        status: "PASS",
+        note: "ลดลง -10.47% (ผ่านเกณฑ์ที่ตั้งเป้าลดลงอย่างน้อย 3%)"
+      },
+      {
+        id: "8",
+        num: "8",
+        pillar: "PP&P",
+        plan: "แผนงานที่ 2: ป้องกันควบคุมโรคและลดปัจจัยเสี่ยง",
+        name: "ร้อยละความครอบคลุมวัคซีนป้องกันหัด-คางทูม-หัดเยอรมัน เข็มที่ 2 (MMR2) เด็ก < 3 ปี",
+        target: ">= 95%",
+        targetVal: 95,
+        criteria: "gte",
+        r3: 89.54,
+        r6: 88.19,
+        r9: 87.67,
+        r12: 87.02,
+        status: "FAIL",
+        note: "ได้ 87.02% จากเป้าหมาย 95%"
+      },
+
+      // แผนงานที่ 3: การบริหารจัดการสิ่งแวดล้อม
+      {
+        id: "9.1",
+        num: "9.1",
+        pillar: "PP&P",
+        plan: "แผนงานที่ 3: การบริหารจัดการสิ่งแวดล้อม",
+        name: "ร้อยละของโรงพยาบาลพัฒนาอนามัยสิ่งแวดล้อม GREEN & CLEAN Hospital (ระดับมาตรฐาน)",
+        target: ">= 95%",
+        targetVal: 95,
+        criteria: "gte",
+        r3: null,
+        r6: 100,
+        r9: 100,
+        r12: 100,
+        status: "PASS",
+        note: "ผ่าน 100%"
+      },
+      {
+        id: "9.2",
+        num: "9.2",
+        pillar: "PP&P",
+        plan: "แผนงานที่ 3: การบริหารจัดการสิ่งแวดล้อม",
+        name: "ร้อยละของโรงพยาบาลพัฒนาอนามัยสิ่งแวดล้อม GREEN & CLEAN Hospital (ระดับท้าทาย)",
+        target: ">= 30%",
+        targetVal: 30,
+        criteria: "gte",
+        r3: null,
+        r6: 21.05,
+        r9: 21.05,
+        r12: 42.11,
+        status: "PASS",
+        note: "ผลงาน 42.11% สูงกว่าเป้าหมาย 30%"
+      },
+
+      // แผนงานที่ 4: การพัฒนาระบบการแพทย์ปฐมภูมิ
+      {
+        id: "10",
+        num: "10",
+        pillar: "Service",
+        plan: "แผนงานที่ 4: พัฒนาระบบการแพทย์ปฐมภูมิ",
+        name: "จำนวนหน่วยบริการปฐมภูมิและเครือข่ายตามเกณฑ์ พ.ร.บ.ระบบสุขภาพปฐมภูมิ 2562",
+        target: "4,500 หน่วย",
+        targetVal: 4500,
+        criteria: "gte",
+        r3: null,
+        r6: 99,
+        r9: 99,
+        r12: 107,
+        status: "FAIL",
+        note: "ได้ 107 หน่วย จากเป้าหมาย 4,500 หน่วย (ผลต่ำกว่าเกณฑ์)"
+      },
+
+      // แผนงานที่ 5: การพัฒนาระบบบริการสุขภาพ (Service Plan)
+      {
+        id: "11",
+        num: "11",
+        pillar: "Service",
+        plan: "แผนงานที่ 5: พัฒนาระบบบริการสุขภาพ (Service Plan)",
+        name: "อัตราตายของผู้ป่วยโรคหลอดเลือดสมอง (Stroke: I60-I64)",
+        target: "< 7.00%",
+        targetVal: 7.00,
+        criteria: "lte",
+        r3: 7.54,
+        r6: 6.89,
+        r9: 6.82,
+        r12: 6.54,
+        status: "PASS",
+        note: "อัตราตาย 6.54% ต่ำกว่าเกณฑ์ < 7.00%"
+      },
+      {
+        id: "12",
+        num: "12",
+        pillar: "Service",
+        plan: "แผนงานที่ 5: พัฒนาระบบบริการสุขภาพ (Service Plan)",
+        name: "อัตราความสำเร็จการรักษาผู้ป่วยวัณโรคปอดรายใหม่",
+        target: ">= 88%",
+        targetVal: 88,
+        criteria: "gte",
+        r3: null,
+        r6: null,
+        r9: null,
+        r12: 81.22,
+        status: "FAIL",
+        note: "ได้ 81.22% ต่ำกว่าเป้าหมาย 88%"
+      },
+      {
+        id: "13",
+        num: "13",
+        pillar: "Service",
+        plan: "แผนงานที่ 5: พัฒนาระบบบริการสุขภาพ (Service Plan)",
+        name: "อัตราตายทารกแรกเกิดอายุน้อยกว่าหรือเท่ากับ 28 วัน",
+        target: "< 3.60 ต่อพัน",
+        targetVal: 3.60,
+        criteria: "lte",
+        r3: null,
+        r6: null,
+        r9: null,
+        r12: 5.95,
+        status: "FAIL",
+        note: "อัตราตาย 5.95 ต่อพันแรกเกิดมีชีพ (เกินเกณฑ์ 3.60)"
+      },
+      {
+        id: "14",
+        num: "14",
+        pillar: "Service",
+        plan: "แผนงานที่ 5: พัฒนาระบบบริการสุขภาพ (Service Plan)",
+        name: "ร้อยละประชาชนที่มารับบริการระดับปฐมภูมิได้รับการรักษาด้วยแพทย์แผนไทยและแพทย์ทางเลือก",
+        target: ">= 50%",
+        targetVal: 50,
+        criteria: "gte",
+        r3: 54.87,
+        r6: 49.94,
+        r9: 48.04,
+        r12: 47.18,
+        status: "FAIL",
+        note: "ผลงาน 47.18% ต่ำกว่าเกณฑ์ 50%"
+      },
+      {
+        id: "15",
+        num: "15",
+        pillar: "Service",
+        plan: "แผนงานที่ 5: พัฒนาระบบบริการสุขภาพ (Service Plan)",
+        name: "มูลค่าการใช้ยาสมุนไพรในสิทธิ UC (ล้านบาท)",
+        target: ">= 165 ลบ.",
+        targetVal: 165,
+        criteria: "gte",
+        r3: null,
+        r6: null,
+        r9: 86.15,
+        r12: "รอประเมิน",
+        status: "PENDING",
+        note: "ยอดรอบ 9 ด. 86.15 ลบ. อยู่ระหว่างสรุปรอบ 12 ด."
+      },
+      {
+        id: "16.1",
+        num: "16.1",
+        pillar: "Service",
+        plan: "แผนงานที่ 5: พัฒนาระบบบริการสุขภาพ (Service Plan)",
+        name: "อัตราการฆ่าตัวตายสำเร็จ (ต่อแสนประชากร)",
+        target: "<= 7.80",
+        targetVal: 7.80,
+        criteria: "lte",
+        r3: null,
+        r6: 1.19,
+        r9: 2.95,
+        r12: 4.36,
+        status: "PASS",
+        note: "อัตรา 4.36 ต่อแสน ควบคุมได้ดีกว่าเกณฑ์ <= 7.80"
+      },
+      {
+        id: "16.2",
+        num: "16.2",
+        pillar: "Service",
+        plan: "แผนงานที่ 5: พัฒนาระบบบริการสุขภาพ (Service Plan)",
+        name: "ร้อยละของผู้พยายามฆ่าตัวตายเข้าถึงบริการที่มีประสิทธิภาพ",
+        target: ">= 70%",
+        targetVal: 70,
+        criteria: "gte",
+        r3: null,
+        r6: 45.57,
+        r9: 58.28,
+        r12: 57.33,
+        status: "FAIL",
+        note: "เข้าถึงบริการ 57.33% ต่ำกว่าเป้าหมาย 70%"
+      },
+      {
+        id: "17.1",
+        num: "17.1",
+        pillar: "Service",
+        plan: "แผนงานที่ 5: พัฒนาระบบบริการสุขภาพ (Service Plan)",
+        name: "ร้อยละผู้ป่วยจิตเวชยาเสพติดก่อความรุนแรง (SMI-V) เข้าถึงบริการต่อเนื่องไม่ก่อความรุนแรงซ้ำ",
+        target: ">= 40%",
+        targetVal: 40,
+        criteria: "gte",
+        r3: null,
+        r6: null,
+        r9: null,
+        r12: 6.96,
+        status: "FAIL",
+        note: "ได้เพียง 6.96% ต่ำกว่าเป้าหมาย 40% อย่างมาก"
+      },
+      {
+        id: "17.2",
+        num: "17.2",
+        pillar: "Service",
+        plan: "แผนงานที่ 5: พัฒนาระบบบริการสุขภาพ (Service Plan)",
+        name: "ร้อยละการเข้าถึงบริการของผู้ป่วยโรคจิตเวชยาเสพติดที่มีความเสี่ยงสูงต่อการก่อความรุนแรง (SMI-V)",
+        target: ">= 40%",
+        targetVal: 40,
+        criteria: "gte",
+        r3: null,
+        r6: 29.00,
+        r9: 26.72,
+        r12: 29.46,
+        status: "FAIL",
+        note: "ได้ 29.46% ไม่ถึงเป้าหมาย 40%"
+      },
+      {
+        id: "18",
+        num: "18",
+        pillar: "Service",
+        plan: "แผนงานที่ 5: พัฒนาระบบบริการสุขภาพ (Service Plan)",
+        name: "อัตราตายผู้ป่วยติดเชื้อในกระแสเลือดแบบรุนแรงชนิด community-acquired",
+        target: "< 24%",
+        targetVal: 24,
+        criteria: "lte",
+        r3: 31.25,
+        r6: 31.14,
+        r9: 31.51,
+        r12: 31.13,
+        status: "FAIL",
+        note: "อัตราตายสูงถึง 31.13% (เกินเกณฑ์ควบคุม < 24%)"
+      },
+      {
+        id: "19",
+        num: "19",
+        pillar: "Service",
+        plan: "แผนงานที่ 5: พัฒนาระบบบริการสุขภาพ (Service Plan)",
+        name: "อัตราตายของผู้ป่วยโรคกล้ามเนื้อหัวใจตายเฉียบพลันชนิด STEMI",
+        target: "< 8.00%",
+        targetVal: 8.00,
+        criteria: "lte",
+        r3: null,
+        r6: 7.69,
+        r9: 6.33,
+        r12: 6.70,
+        status: "PASS",
+        note: "อัตราตาย 6.70% ผ่านเกณฑ์ที่กำหนดให้น้อยกว่า 8%"
+      },
+      {
+        id: "20",
+        num: "20",
+        pillar: "Service",
+        plan: "แผนงานที่ 5: พัฒนาระบบบริการสุขภาพ (Service Plan)",
+        name: "ร้อยละผู้ป่วยไตเรื้อรัง stage 5 รายใหม่ ลดลงจากปีงบประมาณก่อนหน้า",
+        target: ">= 5%",
+        targetVal: 5,
+        criteria: "gte",
+        r3: null,
+        r6: null,
+        r9: null,
+        r12: 19.93,
+        status: "PASS",
+        note: "ลดลง 19.93% (สูงกว่าเป้า 5%)"
+      },
+
+      // แผนงานที่ 5 (ต่อ): มะเร็ง และ การบริจาคอวัยวะ
+      {
+        id: "21",
+        num: "21",
+        pillar: "Service",
+        plan: "แผนงานที่ 5: พัฒนาระบบบริการสุขภาพ (Service Plan)",
+        name: "อัตราส่วนผู้บริจาคอวัยวะสมองตายได้รับการผ่าตัดนำอวัยวะออกต่อผู้เสียชีวิตใน รพ.",
+        target: ">= 0.63",
+        targetVal: 0.63,
+        criteria: "gte",
+        r3: null,
+        r6: null,
+        r9: null,
+        r12: 0.41,
+        status: "FAIL",
+        note: "ได้ 0.41 ไม่ถึงเกณฑ์ 0.63"
+      },
+      {
+        id: "22.1",
+        num: "22.1",
+        pillar: "Service",
+        plan: "แผนงานที่ 5: พัฒนาระบบบริการสุขภาพ (Service Plan)",
+        name: "ร้อยละผู้ป่วยมะเร็งได้รับการรักษาด้วยการผ่าตัดภายในระยะเวลา 4 สัปดาห์",
+        target: ">= 70%",
+        targetVal: 70,
+        criteria: "gte",
+        r3: null,
+        r6: 71.23,
+        r9: 67.98,
+        r12: 68.83,
+        status: "FAIL",
+        note: "ผลงาน 68.83% ต่ำกว่าเป้าหมาย 70% เล็กน้อย"
+      },
+      {
+        id: "22.2",
+        num: "22.2",
+        pillar: "Service",
+        plan: "แผนงานที่ 5: พัฒนาระบบบริการสุขภาพ (Service Plan)",
+        name: "ร้อยละผู้ป่วยมะเร็งได้รับการรักษาด้วยเคมีบำบัดภายในระยะเวลา 6 สัปดาห์",
+        target: ">= 70%",
+        targetVal: 70,
+        criteria: "gte",
+        r3: null,
+        r6: 63.04,
+        r9: 74.00,
+        r12: 76.32,
+        status: "PASS",
+        note: "ผลงาน 76.32% บรรลุตามเกณฑ์ >= 70%"
+      },
+      {
+        id: "22.3",
+        num: "22.3",
+        pillar: "Service",
+        plan: "แผนงานที่ 5: พัฒนาระบบบริการสุขภาพ (Service Plan)",
+        name: "ร้อยละผู้ป่วยมะเร็งได้รับการรักษาด้วยรังสีรักษาภายในระยะเวลา 6 สัปดาห์",
+        target: ">= 70%",
+        targetVal: 70,
+        criteria: "gte",
+        r3: 92.95,
+        r6: 61.54,
+        r9: 39.13,
+        r12: 41.94,
+        status: "FAIL",
+        note: "ได้ 41.94% หลุดเป้าหมาย 70% มาก"
+      },
+      {
+        id: "23",
+        num: "23",
+        pillar: "Service",
+        plan: "แผนงานที่ 5: พัฒนาระบบบริการสุขภาพ (Service Plan)",
+        name: "ร้อยละผู้ป่วยยาเสพติดเข้าสู่กระบวนการบำบัดและดูแลต่อเนื่อง (Retention Rate)",
+        target: ">= 70%",
+        targetVal: 70,
+        criteria: "gte",
+        r3: 92.95,
+        r6: 92.26,
+        r9: 87.94,
+        r12: 88.24,
+        status: "PASS",
+        note: "ผลงาน 88.24% บรรลุเกณฑ์"
+      },
+
+      // แผนงานที่ 6: การพัฒนาระบบบริการการแพทย์ฉุกเฉินครบวงจรและระบบการส่งต่อ
+      {
+        id: "24",
+        num: "24",
+        pillar: "Service",
+        plan: "แผนงานที่ 6: การแพทย์ฉุกเฉินและการส่งต่อ",
+        name: "ร้อยละของผู้ป่วยวิกฤตเข้าถึงบริการการแพทย์ฉุกเฉิน (EMS)",
+        target: ">= 29%",
+        targetVal: 29,
+        criteria: "gte",
+        r3: 39.42,
+        r6: 32.85,
+        r9: 32.85,
+        r12: 43.08,
+        status: "PASS",
+        note: "เข้าถึง 43.08% บรรลุเป้าหมาย >= 29%"
+      },
+
+      // แผนงานที่ 7: การพัฒนาตามโครงการพระราชดำริ โครงการเฉลิมพระเกียรติฯ
+      {
+        id: "25",
+        num: "25",
+        pillar: "Service",
+        plan: "แผนงานที่ 7: พัฒนาตามโครงการพระราชดำริฯ",
+        name: "ร้อยละผู้ป่วยในพระบรมราชานุเคราะห์ และพระราชานุเคราะห์ ได้รับการดูแลอย่างมีคุณภาพ",
+        target: ">= 90%",
+        targetVal: 90,
+        criteria: "gte",
+        r3: null,
+        r6: null,
+        r9: null,
+        r12: 100,
+        status: "PASS",
+        note: "ผลงาน 100% ครบถ้วน"
+      },
+
+      // แผนงานที่ 8: การพัฒนาระบบบริหารจัดการกำลังคนด้านสุขภาพ (People Excellence)
+      {
+        id: "26.1",
+        num: "26.1",
+        pillar: "People",
+        plan: "แผนงานที่ 8: บริหารจัดการกำลังคนด้านสุขภาพ",
+        name: "สัดส่วนการกระจายแพทย์ในโรงพยาบาลชุมชนสังกัดสำนักงานปลัดกระทรวงสาธารณสุข",
+        target: ">= 80%",
+        targetVal: 80,
+        criteria: "gte",
+        r3: null,
+        r6: 79.41,
+        r9: 83.82,
+        r12: 79.41,
+        status: "FAIL",
+        note: "ได้ 79.41% ใกล้เคียงเป้าหมาย 80%"
+      },
+
+      // แผนงานที่ 9: การพัฒนาระบบบริการสุขภาพดิจิทัล (Governance Excellence)
+      {
+        id: "27",
+        num: "27",
+        pillar: "Governance",
+        plan: "แผนงานที่ 9: พัฒนาระบบบริการสุขภาพดิจิทัล",
+        name: "ร้อยละของหน่วยงานที่ผ่านเกณฑ์มาตรฐานความมั่นคงปลอดภัยไซเบอร์ระดับสูง",
+        target: "100%",
+        targetVal: 100,
+        criteria: "gte",
+        r3: 3.49,
+        r6: 40.70,
+        r9: 68.60,
+        r12: 100,
+        status: "PASS",
+        note: "ผ่านการรับรองครบ 100%"
+      },
+
+      // แผนงานที่ 10: การพัฒนาระบบธรรมาภิบาลและองค์กรคุณภาพ
+      {
+        id: "28.1",
+        num: "28.1",
+        pillar: "Governance",
+        plan: "แผนงานที่ 10: ธรรมาภิบาลและองค์กรคุณภาพ",
+        name: "ร้อยละหน่วยงานในสังกัด สธ. ผ่านเกณฑ์ประเมินคุณธรรมและความโปร่งใส (ITA)",
+        target: ">= 94%",
+        targetVal: 94,
+        criteria: "gte",
+        r3: null,
+        r6: null,
+        r9: null,
+        r12: "ภาพรวม สธ.",
+        status: "PASS",
+        note: "ประเมินระดับภาพรวมกระทรวง ผ่านเกณฑ์"
+      },
+      {
+        id: "29.1",
+        num: "29.1",
+        pillar: "Governance",
+        plan: "แผนงานที่ 10: ธรรมาภิบาลและองค์กรคุณภาพ",
+        name: "ร้อยละ รพศ./รพท. มีคุณภาพผ่านการรับรองมาตรฐาน (HA)",
+        target: "100%",
+        targetVal: 100,
+        criteria: "gte",
+        r3: 100,
+        r6: 100,
+        r9: 100,
+        r12: 100,
+        status: "PASS",
+        note: "ผ่านการรับรอง 100%"
+      },
+      {
+        id: "29.2",
+        num: "29.2",
+        pillar: "Governance",
+        plan: "แผนงานที่ 10: ธรรมาภิบาลและองค์กรคุณภาพ",
+        name: "ร้อยละของโรงพยาบาลชุมชน (รพช.) มีคุณภาพผ่านการรับรองมาตรฐาน",
+        target: ">= 92%",
+        targetVal: 92,
+        criteria: "gte",
+        r3: 100,
+        r6: 100,
+        r9: 100,
+        r12: 100,
+        status: "PASS",
+        note: "ผ่านการรับรอง 100% (เกินเป้า 92%)"
+      },
+      {
+        id: "30.1",
+        num: "30.1",
+        pillar: "Governance",
+        plan: "แผนงานที่ 10: ธรรมาภิบาลและองค์กรคุณภาพ",
+        name: "ร้อยละของ รพ. ในเขตสุขภาพผ่านเกณฑ์ รพ. มีการตรวจทางห้องปฏิบัติการอย่างสมเหตุผล (RLU hospital Plus)",
+        target: ">= 50%",
+        targetVal: 50,
+        criteria: "gte",
+        r3: 14.10,
+        r6: 48.72,
+        r9: 91.03,
+        r12: 96.15,
+        status: "PASS",
+        note: "ผลงานสูงถึง 96.15% (เป้าหมาย 50%)"
+      },
+      {
+        id: "30.2",
+        num: "30.2",
+        pillar: "Governance",
+        plan: "แผนงานที่ 10: ธรรมาภิบาลและองค์กรคุณภาพ",
+        name: "ร้อยละผู้ป่วยเบาหวานได้รับการตรวจ HbA1c ซ้ำภายใน 90 วัน (ไม่เกินเกณฑ์)",
+        target: "<= 5%",
+        targetVal: 5,
+        criteria: "lte",
+        r3: 2.88,
+        r6: 3.92,
+        r9: 4.49,
+        r12: 3.44,
+        status: "PASS",
+        note: "คุมได้ 3.44% อยู่ในเกณฑ์กำหนดไม่เกิน 5%"
+      },
+      {
+        id: "30.4",
+        num: "30.4",
+        pillar: "Governance",
+        plan: "แผนงานที่ 10: ธรรมาภิบาลและองค์กรคุณภาพ",
+        name: "ร้อยละผู้ป่วยเบาหวานได้รับการตรวจ HbA1c อย่างน้อยปีละ 1 ครั้ง",
+        target: "> 70%",
+        targetVal: 70,
+        criteria: "gte",
+        r3: 31.74,
+        r6: 46.20,
+        r9: 55.95,
+        r12: 58.28,
+        status: "FAIL",
+        note: "ได้ 58.28% ต่ำกว่าเกณฑ์เป้าหมาย 70%"
+      },
+      {
+        id: "30.5",
+        num: "30.5",
+        pillar: "Governance",
+        plan: "แผนงานที่ 10: ธรรมาภิบาลและองค์กรคุณภาพ",
+        name: "ร้อยละผู้ป่วยเบาหวานได้รับการตรวจ LDL-Cholesterol อย่างน้อยปีละ 1 ครั้ง",
+        target: "> 70%",
+        targetVal: 70,
+        criteria: "gte",
+        r3: 31.83,
+        r6: 46.34,
+        r9: 55.22,
+        r12: 57.30,
+        status: "FAIL",
+        note: "ได้ 57.30% ไม่ถึงเกณฑ์ 70%"
+      },
+
+      // แผนงานที่ 11: การบริหารจัดการด้านการเงินการคลัง
+      {
+        id: "31",
+        num: "31",
+        pillar: "Governance",
+        plan: "แผนงานที่ 11: บริหารจัดการด้านการเงินการคลัง",
+        name: "ความแตกต่างการใช้สิทธิเมื่อไปรับบริการผู้ป่วยในของผู้มีสิทธิบัตรทอง (Compliance Rate)",
+        target: "<= 112,800 ครั้ง",
+        targetVal: 112800,
+        criteria: "lte",
+        r3: null,
+        r6: null,
+        r9: null,
+        r12: 90330,
+        status: "PASS",
+        note: "90,330 ครั้ง (ผ่านเกณฑ์ควบคุมไม่เกิน 112,800 ครั้ง)"
+      },
+      {
+        id: "32",
+        num: "32",
+        pillar: "Governance",
+        plan: "แผนงานที่ 11: บริหารจัดการด้านการเงินการคลัง",
+        name: "ประชาชนสามารถเข้าถึงสิทธิในระบบหลักประกันสุขภาพถ้วนหน้า (UHC)",
+        target: ">= 99.55%",
+        targetVal: 99.55,
+        criteria: "gte",
+        r3: 99.70,
+        r6: 99.69,
+        r9: 99.63,
+        r12: 99.67,
+        status: "PASS",
+        note: "เข้าถึง 99.67% เกินเป้าหมาย 99.55%"
+      },
+      {
+        id: "33",
+        num: "33",
+        pillar: "Governance",
+        plan: "แผนงานที่ 11: บริหารจัดการด้านการเงินการคลัง",
+        name: "ร้อยละของหน่วยบริการที่ผ่านเกณฑ์การประเมินประสิทธิภาพ Total Performance Score (TPS)",
+        target: ">= 55%",
+        targetVal: 55,
+        criteria: "gte",
+        r3: 41.18,
+        r6: 41.18,
+        r9: 41.18,
+        r12: 41.18,
+        status: "FAIL",
+        note: "ผลงานคงที่ 41.18% ต่ำกว่าเป้าหมาย 55% (แถบเหลืองเฝ้าระวัง)"
+      },
+
+      // แผนงานที่ 12: อุตสาหกรรมการแพทย์ครบวงจร การท่องเที่ยวเชิงสุขภาพ ความงาม และแพทย์แผนไทย
+      {
+        id: "34",
+        num: "34",
+        pillar: "Health-Related Economy",
+        plan: "แผนงานที่ 12: อุตสาหกรรมสุขภาพ & ท่องเที่ยวเชิงสุขภาพ",
+        name: "อัตราการเพิ่มขึ้นของจำนวนสถานประกอบการท่องเที่ยวเชิงสุขภาพที่ได้มาตรฐาน",
+        target: ">= 29",
+        targetVal: 29,
+        criteria: "gte",
+        r3: null,
+        r6: null,
+        r9: null,
+        r12: 27.86,
+        status: "FAIL",
+        note: "ผลงาน 27.86 (เป้าหมาย >= 29)"
+      },
+      {
+        id: "35",
+        num: "35",
+        pillar: "Health-Related Economy",
+        plan: "แผนงานที่ 12: อุตสาหกรรมสุขภาพ & ท่องเที่ยวเชิงสุขภาพ",
+        name: "ร้อยละที่เพิ่มขึ้นของกลุ่มอุตสาหกรรมการแพทย์และท่องเที่ยวเชิงสุขภาพมีศักยภาพแข่งขัน",
+        target: ">= 10%",
+        targetVal: 10,
+        criteria: "gte",
+        r3: null,
+        r6: null,
+        r9: 31.22,
+        r12: 31.22,
+        status: "PASS",
+        note: "เพิ่มขึ้น 31.22% ทะลุเกณฑ์ 10%"
+      },
+      {
+        id: "36",
+        num: "36",
+        pillar: "Health-Related Economy",
+        plan: "แผนงานที่ 12: อุตสาหกรรมสุขภาพ & ท่องเที่ยวเชิงสุขภาพ",
+        name: "จำนวนผลิตภัณฑ์สุขภาพที่ได้รับการพัฒนาให้มีศักยภาพในการส่งออก",
+        target: "100 ผลิตภัณฑ์",
+        targetVal: 100,
+        criteria: "gte",
+        r3: 19,
+        r6: 75.43,
+        r9: 75,
+        r12: 100,
+        status: "PASS",
+        note: "พัฒนาสำเร็จครบ 100 ผลิตภัณฑ์ (เป้าหมาย 100)"
+      }
+    ];
+
+    // Chart instances
+    let pillarChartInstance = null;
+    let doughnutChartInstance = null;
+    let modalChartInstance = null;
+
+    // Filter states
+    let currentPillar = "ALL";
+    let currentStatus = "ALL";
+    let searchQuery = "";
+
+    // Initialization
+    window.onload = function() {
+      updateKPISummary();
+      initCharts();
+      renderTable();
+      renderPlanSummaryGrid();
+      setupEventListeners();
+    };
+
+    function setupEventListeners() {
+      // Search
+      document.getElementById('searchInput').addEventListener('input', function(e) {
+        searchQuery = e.target.value.toLowerCase().trim();
+        renderTable();
+      });
+
+      // Pillar select
+      document.getElementById('pillarFilter').addEventListener('change', function(e) {
+        currentPillar = e.target.value;
+        renderTable();
+      });
+
+      // Status buttons
+      const buttons = document.querySelectorAll('.status-filter-btn');
+      buttons.forEach(btn => {
+        btn.addEventListener('click', function() {
+          buttons.forEach(b => {
+            b.classList.remove('bg-emerald-700', 'text-white', 'shadow-sm');
+            b.classList.add('bg-slate-100', 'text-slate-700');
+          });
+          this.classList.remove('bg-slate-100', 'text-slate-700');
+          this.classList.add('bg-emerald-700', 'text-white', 'shadow-sm');
+
+          currentStatus = this.getAttribute('data-status');
+          renderTable();
+        });
+      });
+    }
+
+    function quickFilterHighlight(type) {
+      const searchInput = document.getElementById('searchInput');
+      const pillarFilter = document.getElementById('pillarFilter');
+
+      if (type === 'fail') {
+        const failBtn = document.querySelector('[data-status="FAIL"]');
+        failBtn.click();
+      } else if (type === 'cancer') {
+        searchInput.value = 'มะเร็ง';
+        searchQuery = 'มะเร็ง';
+        currentPillar = "Service";
+        pillarFilter.value = "Service";
+        renderTable();
+      } else if (type === 'rlu') {
+        searchInput.value = 'RLU';
+        searchQuery = 'rlu';
+        currentPillar = "Governance";
+        pillarFilter.value = "Governance";
+        renderTable();
+      } else {
+        searchInput.value = '';
+        searchQuery = '';
+        currentPillar = "ALL";
+        pillarFilter.value = "ALL";
+        const allBtn = document.querySelector('[data-status="ALL"]');
+        allBtn.click();
+      }
+    }
+
+    function updateKPISummary() {
+      const total = kpiData.length;
+      const pass = kpiData.filter(d => d.status === 'PASS').length;
+      const fail = kpiData.filter(d => d.status === 'FAIL').length;
+      const pending = kpiData.filter(d => d.status === 'PENDING').length;
+
+      const evaluated = pass + fail;
+      const passRate = evaluated > 0 ? Math.round((pass / evaluated) * 100) : 0;
+
+      document.getElementById('kpi-total').innerText = total;
+      document.getElementById('kpi-pass').innerText = pass;
+      document.getElementById('kpi-pass-pct').innerText = `(${Math.round((pass/total)*100)}%)`;
+
+      document.getElementById('kpi-fail').innerText = fail;
+      document.getElementById('kpi-fail-pct').innerText = `(${Math.round((fail/total)*100)}%)`;
+
+      document.getElementById('kpi-pending').innerText = pending;
+      document.getElementById('kpi-pending-pct').innerText = `(${Math.round((pending/total)*100)}%)`;
+
+      document.getElementById('kpi-score').innerText = `${passRate}%`;
+      document.getElementById('kpi-score-bar').style.width = `${passRate}%`;
+
+      document.getElementById('legend-pass').innerText = pass;
+      document.getElementById('legend-fail').innerText = fail;
+      document.getElementById('legend-pending').innerText = pending;
+    }
+
+    function initCharts() {
+      // 1. Bar Chart by Pillar
+      const pillars = [
+        { key: "PP&P", label: "PP & P" },
+        { key: "Service", label: "Service" },
+        { key: "People", label: "People" },
+        { key: "Governance", label: "Governance" },
+        { key: "Health-Related Economy", label: "Economy" }
+      ];
+
+      const passData = pillars.map(p => kpiData.filter(d => d.pillar === p.key && d.status === 'PASS').length);
+      const failData = pillars.map(p => kpiData.filter(d => d.pillar === p.key && d.status === 'FAIL').length);
+      const pendData = pillars.map(p => kpiData.filter(d => d.pillar === p.key && d.status === 'PENDING').length);
+
+      const ctxBar = document.getElementById('pillarBarChart').getContext('2d');
+      pillarChartInstance = new Chart(ctxBar, {
+        type: 'bar',
+        data: {
+          labels: ['PP & P Excellence', 'Service Excellence', 'People Excellence', 'Governance Excellence', 'Health Economy'],
+          datasets: [
+            {
+              label: 'ผ่านเกณฑ์',
+              data: passData,
+              backgroundColor: '#10b981',
+              borderRadius: 6
+            },
+            {
+              label: 'ไม่ผ่านเกณฑ์',
+              data: failData,
+              backgroundColor: '#f43f5e',
+              borderRadius: 6
+            },
+            {
+              label: 'รอผล / เฝ้าระวัง',
+              data: pendData,
+              backgroundColor: '#f59e0b',
+              borderRadius: 6
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                boxWidth: 12,
+                font: { family: 'Prompt', size: 11 }
+              }
+            },
+            tooltip: {
+              callbacks: {
+                afterBody: function(context) {
+                  return 'คลิกเพื่อเลือกกรองหมวดหมู่นี้';
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              stacked: true,
+              grid: { display: false },
+              ticks: { font: { family: 'Prompt', size: 10 } }
+            },
+            y: {
+              stacked: true,
+              beginAtZero: true,
+              ticks: { precision: 0 }
+            }
+          }
+        }
+      });
+
+      // 2. Status Doughnut Chart
+      const pass = kpiData.filter(d => d.status === 'PASS').length;
+      const fail = kpiData.filter(d => d.status === 'FAIL').length;
+      const pend = kpiData.filter(d => d.status === 'PENDING').length;
+
+      const ctxDoughnut = document.getElementById('statusDoughnutChart').getContext('2d');
+      doughnutChartInstance = new Chart(ctxDoughnut, {
+        type: 'doughnut',
+        data: {
+          labels: ['ผ่านเกณฑ์', 'ไม่ผ่านเกณฑ์', 'รอผล/เฝ้าระวัง'],
+          datasets: [{
+            data: [pass, fail, pend],
+            backgroundColor: ['#10b981', '#f43f5e', '#f59e0b'],
+            borderWidth: 2,
+            borderColor: '#ffffff',
+            hoverOffset: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '72%',
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('indicatorsTableBody');
+      tbody.innerHTML = '';
+
+      const filtered = kpiData.filter(item => {
+        // Pillar Match
+        const matchPillar = currentPillar === "ALL" || item.pillar === currentPillar;
+        // Status Match
+        const matchStatus = currentStatus === "ALL" || item.status === currentStatus;
+        // Search Match
+        const matchSearch = searchQuery === "" || 
+          item.name.toLowerCase().includes(searchQuery) ||
+          item.num.toLowerCase().includes(searchQuery) ||
+          item.plan.toLowerCase().includes(searchQuery);
+
+        return matchPillar && matchStatus && matchSearch;
+      });
+
+      document.getElementById('record-count').innerText = filtered.length;
+      const noResults = document.getElementById('noResults');
+
+      if (filtered.length === 0) {
+        noResults.classList.remove('hidden');
+        return;
+      } else {
+        noResults.classList.add('hidden');
+      }
+
+      filtered.forEach((row, index) => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50/80 transition-colors border-b border-slate-100";
+
+        // Status badge styling
+        let statusBadge = '';
+        if (row.status === 'PASS') {
+          statusBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold status-badge-pass">
+            <i class="fa-solid fa-check text-[10px]"></i> ผ่าน
+          </span>`;
+        } else if (row.status === 'FAIL') {
+          statusBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold status-badge-fail">
+            <i class="fa-solid fa-xmark text-[10px]"></i> ไม่ผ่าน
+          </span>`;
+        } else {
+          statusBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold status-badge-pending">
+            <i class="fa-solid fa-clock text-[10px]"></i> รอผล
+          </span>`;
+        }
+
+        // Format R12 text and styling
+        let r12Class = "font-bold font-mono ";
+        if (row.status === 'PASS') r12Class += "text-emerald-700 bg-emerald-50/70";
+        else if (row.status === 'FAIL') r12Class += "text-rose-600 bg-rose-50/70";
+        else r12Class += "text-amber-700 bg-amber-50/70";
+
+        const val3 = row.r3 !== null ? row.r3 : '-';
+        const val6 = row.r6 !== null ? row.r6 : '-';
+        const val9 = row.r9 !== null ? row.r9 : '-';
+        const val12 = row.r12 !== null ? (typeof row.r12 === 'number' ? row.r12.toLocaleString() : row.r12) : '-';
+
+        tr.innerHTML = `
+          <td class="py-3 px-3 sm:px-4 text-center font-mono text-slate-500 font-medium">${row.num}</td>
+          <td class="py-3 px-3 sm:px-4">
+            <div class="font-semibold text-slate-800 leading-snug">${row.name}</div>
+            <div class="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-teal-500"></span>
+              <span>${row.plan}</span>
+            </div>
+          </td>
+          <td class="py-3 px-3 sm:px-4 text-center font-mono font-medium text-slate-700 whitespace-nowrap">${row.target}</td>
+          <td class="py-3 px-3 text-center font-mono text-slate-500 hidden md:table-cell">${val3}</td>
+          <td class="py-3 px-3 text-center font-mono text-slate-500 hidden md:table-cell">${val6}</td>
+          <td class="py-3 px-3 text-center font-mono text-slate-500 hidden sm:table-cell">${val9}</td>
+          <td class="py-3 px-3 sm:px-4 text-center border-x border-slate-200/60 ${r12Class}">
+            ${val12}
+          </td>
+          <td class="py-3 px-3 sm:px-4 text-center whitespace-nowrap">
+            ${statusBadge}
+          </td>
+          <td class="py-3 px-2 sm:px-3 text-center">
+            <button onclick="openTrendModal('${row.id}')" title="ดูกราฟแนวโน้ม" class="p-1.5 rounded-lg text-slate-400 hover:text-emerald-700 hover:bg-emerald-50 transition">
+              <i class="fa-solid fa-chart-line text-sm"></i>
+            </button>
+          </td>
+        `;
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderPlanSummaryGrid() {
+      const container = document.getElementById('planOverviewGrid');
+      container.innerHTML = '';
+
+      // Group by Plan
+      const plans = {};
+      kpiData.forEach(item => {
+        if (!plans[item.plan]) {
+          plans[item.plan] = { total: 0, pass: 0, fail: 0, pending: 0, pillar: item.pillar };
+        }
+        plans[item.plan].total++;
+        if (item.status === 'PASS') plans[item.plan].pass++;
+        else if (item.status === 'FAIL') plans[item.plan].fail++;
+        else plans[item.plan].pending++;
+      });
+
+      Object.keys(plans).forEach((planName, idx) => {
+        const p = plans[planName];
+        const pct = Math.round((p.pass / p.total) * 100);
+
+        const card = document.createElement('div');
+        card.className = "p-3.5 rounded-xl border border-slate-200 bg-slate-50/40 hover:bg-white hover:shadow-sm transition cursor-pointer";
+        card.onclick = () => {
+          document.getElementById('searchInput').value = planName.split(':')[0];
+          searchQuery = planName.split(':')[0].toLowerCase();
+          renderTable();
+          window.scrollTo({ top: 500, behavior: 'smooth' });
+        };
+
+        card.innerHTML = `
+          <div class="flex items-start justify-between">
+            <span class="text-xs font-bold text-slate-700 line-clamp-1">${planName}</span>
+            <span class="text-[11px] font-mono px-2 py-0.5 rounded-full ${pct >= 70 ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-700'}">${pct}%</span>
+          </div>
+          <div class="mt-2 text-xs flex items-center justify-between text-slate-500">
+            <span>ทั้งหมด ${p.total} ข้อ</span>
+            <span class="space-x-1.5">
+              <span class="text-emerald-600 font-semibold">ผ่าน ${p.pass}</span>
+              <span class="text-rose-500 font-semibold">ตก ${p.fail}</span>
+              ${p.pending > 0 ? `<span class="text-amber-600">รอ ${p.pending}</span>` : ''}
+            </span>
+          </div>
+          <div class="w-full bg-slate-200 rounded-full h-1.5 mt-2 overflow-hidden flex">
+            <div class="bg-emerald-500 h-1.5" style="width: ${(p.pass/p.total)*100}%"></div>
+            <div class="bg-rose-500 h-1.5" style="width: ${(p.fail/p.total)*100}%"></div>
+            <div class="bg-amber-400 h-1.5" style="width: ${(p.pending/p.total)*100}%"></div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function openTrendModal(id) {
+      const item = kpiData.find(d => d.id === id);
+      if (!item) return;
+
+      document.getElementById('modalTitle').innerText = `${item.num}) ${item.name}`;
+      document.getElementById('modalCategory').innerText = item.plan;
+      document.getElementById('modalTarget').innerText = item.target;
+      document.getElementById('modalLatest').innerText = item.r12 !== null ? item.r12 : 'ยังไม่มีผล';
+
+      document.getElementById('mVal3').innerText = item.r3 !== null ? item.r3 : '-';
+      document.getElementById('mVal6').innerText = item.r6 !== null ? item.r6 : '-';
+      document.getElementById('mVal9').innerText = item.r9 !== null ? item.r9 : '-';
+      document.getElementById('mVal12').innerText = item.r12 !== null ? item.r12 : '-';
+
+      // Create modal line chart
+      const ctx = document.getElementById('modalChart').getContext('2d');
+      if (modalChartInstance) {
+        modalChartInstance.destroy();
+      }
+
+      // Convert values to float for charting if possible
+      const parseVal = (v) => {
+        if (typeof v === 'number') return v;
+        const parsed = parseFloat(v);
+        return isNaN(parsed) ? null : parsed;
+      };
+
+      const chartData = [parseVal(item.r3), parseVal(item.r6), parseVal(item.r9), parseVal(item.r12)];
+
+      modalChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['รอบ 3 เดือน', 'รอบ 6 เดือน', 'รอบ 9 เดือน', 'รอบ 12 เดือน'],
+          datasets: [
+            {
+              label: 'ผลงานจริง',
+              data: chartData,
+              borderColor: '#059669',
+              backgroundColor: 'rgba(16, 185, 129, 0.1)',
+              tension: 0.25,
+              fill: true,
+              pointBackgroundColor: '#059669',
+              pointRadius: 5
+            },
+            ...(typeof item.targetVal === 'number' ? [{
+              label: `เป้าหมาย (${item.targetVal})`,
+              data: [item.targetVal, item.targetVal, item.targetVal, item.targetVal],
+              borderColor: '#f59e0b',
+              borderDash: [5, 5],
+              fill: false,
+              pointRadius: 0
+            }] : [])
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { font: { family: 'Prompt', size: 11 } }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: false,
+              ticks: { font: { family: 'Prompt', size: 10 } }
+            },
+            x: {
+              ticks: { font: { family: 'Prompt', size: 11 } }
+            }
+          }
+        }
+      });
+
+      document.getElementById('trendModal').classList.remove('hidden');
+    }
+
+    function closeTrendModal() {
+      document.getElementById('trendModal').classList.add('hidden');
+    }
+  </script>
+</body>
+</html>
